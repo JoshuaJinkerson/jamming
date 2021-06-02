@@ -1,3 +1,8 @@
+# Project Overview
+
+This was a Capstone React project for Codecademy that provided the HTML and CSS. All of the JavaScript was created for the project and had video guidance if there were issues along the way.
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
