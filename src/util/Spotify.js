@@ -1,49 +1,54 @@
-let userAccess;
+let accessToken;
+let expireTime;
 let clientId = '30e3d5f663f243fc916e3550449f6aed';
-let redirctUri = 'http://localhost:3000/';
-let endpoint = 'https://api.spotify.com/v1/search?type=track&q='
-
+const redirectUri = 'http://localhost:3000/';
 
 const Spotify= {
     getAccessToken(){
-        if(userAccess){
-            return userAccess;
+        if(accessToken){
+            return accessToken;
         }
 
-        const accessToken = window.location.href.match(/access_token=([^&]*)/);
+        const accessTokenMatch = window.location.href.match(/access_token=([^&]*)/);
         const expiresIn = window.location.href.match(/expires_in=([^&]*)/)
     
-        if(accessToken && expiresIn){
-            userAccess = accessToken[1];
-            const expireTime = Number(expiresIn[1]);
-            //This clears the parameters, allowing us to grab a new access token when it expires.
-            window.setTimeout(() => userAccess = '', expireTime * 1000);
-            window.history.pushState('Access Token', null, '/')
-            return userAccess
+        if(accessTokenMatch && expiresIn){
+            accessToken = accessTokenMatch[1];
+            expireTime = Number(expiresIn[1]);
         }else{
-            const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public&redirect_uri=${redirctUri}`
+            const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public&redirect_uri=${redirectUri}`
             window.location = accessUrl;
         }
+        //This clears the parameters, allowing us to grab a new access token when it expires.
+        window.setTimeout(() => accessToken = '', expireTime * 1000);
+        window.history.pushState('Access Token', null, '/')
+        return accessToken
     },
 
-    search(param){
+    async search(param){
         const accessToken = Spotify.getAccessToken();
-        const urlToFetch = `${endpoint}${param}`
-        return fetch(urlToFetch, {headers: {Authorization: `Bearer ${accessToken}`}
-        }).then(response => {
-                return response.json()
-            }).then(jsonResponse => {
+        const urlToFetch = `https://api.spotify.com/v1/search?type=track&q=${param}`;
+        try{
+            const response = await fetch(urlToFetch, {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`
+                        }
+            })
+            if (response.ok){
+                const jsonResponse = await response.json();
                 if(!jsonResponse.tracks){
                     return [];
                 }
-                return jsonResponse.tracks.items.map(track=> ({
-                    id: track.id,
-                    name: track.name,
-                    artist: track.artist[0].name,
-                    album: track.album.name,
-                    uri: track.uri
-                }))
-            })    
+                    return jsonResponse.tracks.items.map(track => ({
+                        id: track.id,
+                        name: track.name,
+                        artist: track.artist[0].name,
+                        album: track.album.name,
+                        uri: track.uri
+                    }))
+        }}catch(error){
+            console.log(error)
+        }
     },
 
     savePlaylist(playlistName, trackArray){
