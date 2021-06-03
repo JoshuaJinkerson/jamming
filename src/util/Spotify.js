@@ -1,7 +1,15 @@
+<<<<<<< HEAD
 let accessToken;
 let expireTime;
 let clientId = '30e3d5f663f243fc916e3550449f6aed';
 const redirectUri = 'http://localhost:3000/';
+=======
+let userAccess;
+let clientId = '';
+let redirctUri = 'http://localhost:3000/';
+let endpoint = 'https://api.spotify.com/v1/search?type=track&q='
+
+>>>>>>> e51d58a32cbc9bae46e839cec216afbb3da163c8
 
 const Spotify= {
     getAccessToken(){
