@@ -1,62 +1,54 @@
-<<<<<<< HEAD
 let accessToken;
-let expireTime;
+let jsonResponse;
 let clientId = '30e3d5f663f243fc916e3550449f6aed';
 const redirectUri = 'http://localhost:3000/';
-=======
-let userAccess;
-let clientId = '';
-let redirctUri = 'http://localhost:3000/';
-let endpoint = 'https://api.spotify.com/v1/search?type=track&q='
 
->>>>>>> e51d58a32cbc9bae46e839cec216afbb3da163c8
 
-const Spotify= {
+const spotify = {
     getAccessToken(){
         if(accessToken){
             return accessToken;
-        }
+            }else{
 
-        const accessTokenMatch = window.location.href.match(/access_token=([^&]*)/);
-        const expiresIn = window.location.href.match(/expires_in=([^&]*)/)
-    
-        if(accessTokenMatch && expiresIn){
-            accessToken = accessTokenMatch[1];
-            expireTime = Number(expiresIn[1]);
-        }else{
-            const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public&redirect_uri=${redirectUri}`
-            window.location = accessUrl;
+            const accessTokenMatch = window.location.href.match(/access_token=([^&]*)/);
+            const expiresIn = window.location.href.match(/expires_in=([^&]*)/)
+        
+            if(accessTokenMatch && expiresIn){
+                accessToken = accessTokenMatch[1];
+                const expireTime = Number(expiresIn[1]);
+            //This clears the parameters, allowing us to grab a new access token when it expires.
+            window.setTimeout(() => accessToken = '', expireTime * 1000);
+            window.history.pushState('Access Token', null, '/')
+            return accessToken
+            }else{
+                const accessUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public&redirect_uri=${redirectUri}`
+                window.location = accessUrl;
+            }
         }
-        //This clears the parameters, allowing us to grab a new access token when it expires.
-        window.setTimeout(() => accessToken = '', expireTime * 1000);
-        window.history.pushState('Access Token', null, '/')
-        return accessToken
     },
 
-    async search(param){
-        const accessToken = Spotify.getAccessToken();
-        const urlToFetch = `https://api.spotify.com/v1/search?type=track&q=${param}`;
-        try{
-            const response = await fetch(urlToFetch, {
-                        headers: {
-                            Authorization: `Bearer ${accessToken}`
-                        }
-            })
-            if (response.ok){
-                const jsonResponse = await response.json();
-                if(!jsonResponse.tracks){
-                    return [];
-                }
-                    return jsonResponse.tracks.items.map(track => ({
-                        id: track.id,
-                        name: track.name,
-                        artist: track.artist[0].name,
-                        album: track.album.name,
-                        uri: track.uri
-                    }))
-        }}catch(error){
-            console.log(error)
+    async search(query){
+        const accessToken = spotify.getAccessToken();
+        const urlToFetch = `https://api.spotify.com/v1/search?type=track&q=${query}`;
+        const response = await fetch(urlToFetch, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        if (response.ok){
+            jsonResponse = response.json();
         }
+        if(jsonResponse.tracks === []){
+                return [];
+            }else{
+                return jsonResponse.tracks.items.map(track => ({
+                    id: track.id,
+                    name: track.name,
+                    artist: track.artist[0].name,
+                    album: track.album.name,
+                    uri: track.uri
+                }))}   
     },
 
     savePlaylist(playlistName, trackArray){
@@ -64,7 +56,7 @@ const Spotify= {
             return;
         }
 
-        const userAccess = Spotify.getAccessToken();
+        const userAccess = spotify.getAccessToken();
         const headers = {Authorization: `Bearer ${userAccess}` }
         let userId; 
 
@@ -93,4 +85,4 @@ const Spotify= {
     }
 }
 
-export default Spotify;
+export default spotify;
