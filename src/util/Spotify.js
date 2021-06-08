@@ -1,6 +1,6 @@
 let accessToken;
 let jsonResponse;
-let clientId = '';
+let clientId = '30e3d5f663f243fc916e3550449f6aed';
 const redirectUri = 'http://localhost:3000/';
 
 
@@ -43,7 +43,7 @@ const spotify = {
                     return jsonResponse.tracks.items.map(track => ({
                         id: track.id,
                         name: track.name,
-                        artist: track.artist[0].name,
+                        artist: track.artists[0].name,
                         album: track.album.name,
                         uri: track.uri
                 }))}else{
